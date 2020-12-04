@@ -108,8 +108,8 @@ theme: next
 deploy:
   type: git
   repo: https://github.com/nomandia/nomandia.github.io.git
-  branch: master
-  message: Site updated: {{ now('YYYY-MM-DD HH:mm:ss') }}
+  branch: gh-pages
+  message: "Site updated: {{ now('YYYY-MM-DD HH:mm:ss') }}"
   token: ab983c6713c4e2d5c4c26550746e69fdb0e48a49
 
 # Feed
