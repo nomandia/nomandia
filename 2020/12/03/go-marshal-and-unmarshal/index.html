@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2"><meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.2.0"><link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png"><link rel="mask-icon" href="/images/logo.svg" color="#222"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/js/prism/prism.css"><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css"><script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script><script id="hexo-configurations">var NexT=window.NexT||{},CONFIG={hostname:"nomandia.cn",root:"/",scheme:"Muse",version:"7.8.0",exturl:!1,sidebar:{position:"right",display:"always",padding:18,offset:12,onmobile:!1},copycode:{enable:!1,show_result:!1,style:null},back2top:{enable:!0,sidebar:!1,scrollpercent:!1},bookmark:{enable:!1,color:"#222",save:"auto"},fancybox:!0,mediumzoom:!1,lazyload:!0,pangu:!1,comments:{style:"tabs",active:null,storage:!0,lazyload:!1,nav:null},algolia:{hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}},localsearch:{enable:!1,trigger:"auto",top_n_per_article:1,unescape:!1,preload:!1},motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}}}</script><meta name="description" content="简介Json(Javascript Object Nanotation)是一种数据交换格式，常用于前后端数据传输。任意一端将数据转换成json 字符串，另一端再将该字符串解析成相应的数据结构，如string类型，strcut对象等。  go语言本身为我们提供了json的工具包”encoding&#x2F;json”。更多的使用方式，可以参考：https:&#x2F;&#x2F;studygolang.com&#x2F;articles&#x2F;"><meta property="og:type" content="article"><meta property="og:title" content="Go的json解析：Marshal与Unmarshal"><meta property="og:url" content="http://nomandia.cn/2020/12/03/go-marshal-and-unmarshal/index.html"><meta property="og:site_name" content="Nomandia.cn"><meta property="og:description" content="简介Json(Javascript Object Nanotation)是一种数据交换格式，常用于前后端数据传输。任意一端将数据转换成json 字符串，另一端再将该字符串解析成相应的数据结构，如string类型，strcut对象等。  go语言本身为我们提供了json的工具包”encoding&#x2F;json”。更多的使用方式，可以参考：https:&#x2F;&#x2F;studygolang.com&#x2F;articles&#x2F;"><meta property="og:locale" content="zh_CN"><meta property="article:published_time" content="2020-12-03T03:58:01.379Z"><meta property="article:modified_time" content="2020-12-03T11:09:41.666Z"><meta property="article:author" content="Nomandia"><meta property="article:tag" content="Go"><meta name="twitter:card" content="summary"><link rel="canonical" href="http://nomandia.cn/2020/12/03/go-marshal-and-unmarshal/"><script id="page-configurations">CONFIG.page={sidebar:"",isHome:!1,isPost:!0,lang:"zh-CN"}</script><title>Go的json解析：Marshal与Unmarshal | Nomandia.cn</title><noscript><style>.sidebar-inner,.use-motion .brand,.use-motion .collection-header,.use-motion .comments,.use-motion .menu-item,.use-motion .pagination,.use-motion .post-block,.use-motion .post-body,.use-motion .post-header{opacity:initial}.use-motion .site-subtitle,.use-motion .site-title{opacity:initial;top:initial}.use-motion .logo-line-before i{left:initial}.use-motion .logo-line-after i{right:initial}</style></noscript><link rel="alternate" href="/atom.xml" title="Nomandia.cn" type="application/atom+xml"></head><body itemscope itemtype="http://schema.org/WebPage"><div class="container use-motion"><div class="headband"></div><header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-container"><div class="site-nav-toggle"><div class="toggle" aria-label="切换导航栏"><span class="toggle-line toggle-line-first"></span> <span class="toggle-line toggle-line-middle"></span> <span class="toggle-line toggle-line-last"></span></div></div><div class="site-meta"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span><h1 class="site-title">Nomandia.cn</h1><span class="logo-line-after"><i></i></span></a><p class="site-subtitle" itemprop="description">FlY WitH YoU</p></div><div class="site-nav-right"><div class="toggle popup-trigger"></div></div></div><nav class="site-nav"><ul id="menu" class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li></ul></nav></div></header><div class="back-to-top"><i class="fa fa-arrow-up"></i> <span>0%</span></div><main class="main"><div class="main-inner"><div class="content-wrap"><div class="content post posts-expand"><article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN"><link itemprop="mainEntityOfPage" href="http://nomandia.cn/2020/12/03/go-marshal-and-unmarshal/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="image" content="/images/avatar.jpg"><meta itemprop="name" content="Nomandia"><meta itemprop="description" content="触碰未来科技、凝汇生活点滴"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Nomandia.cn"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">Go的json解析：Marshal与Unmarshal</h1><div class="post-meta"><span class="post-meta-item"><span class="post-meta-item-icon"><i class="far fa-calendar"></i> </span><span class="post-meta-item-text">发表于</span> <time title="创建时间：2020-12-03 11:58:01 / 修改时间：19:09:41" itemprop="dateCreated datePublished" datetime="2020-12-03T11:58:01+08:00">2020-12-03</time> </span><span class="post-meta-item"><span class="post-meta-item-icon"><i class="far fa-folder"></i> </span><span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/frontend/" itemprop="url" rel="index"><span itemprop="name">前端</span></a> </span></span><span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display:none"><span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="post-meta-item-text">阅读次数：</span> <span id="busuanzi_value_page_pv"></span> </span><span class="post-meta-item"><span class="post-meta-item-icon"><i class="far fa-comment"></i> </span><span class="post-meta-item-text">评论数：</span> <a title="valine" href="/2020/12/03/go-marshal-and-unmarshal/#valine-comments" itemprop="discussionUrl"><span class="post-comments-count valine-comment-count" data-xid="/2020/12/03/go-marshal-and-unmarshal/" itemprop="commentCount"></span></a></span><div class="post-wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word"></i> </span><span class="post-meta-item-text">字数统计:</span> <span title="字数统计">3k字</span> <span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-clock"></i> </span><span class="post-meta-item-text">阅读时长 ≈</span> <span title="阅读时长">12分钟</span></div></div></header><div class="post-body" itemprop="articleBody"><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Json(Javascript Object Nanotation)是一种数据交换格式，常用于前后端数据传输。任意一端将数据转换成json 字符串，另一端再将该字符串解析成相应的数据结构，如string类型，strcut对象等。</p><blockquote><p>go语言本身为我们提供了json的工具包”encoding/json”。<br>更多的使用方式，可以参考：<a target="_blank" rel="noopener" href="https://studygolang.com/articles/6742">https://studygolang.com/articles/6742</a></p></blockquote><a id="more"></a><h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="Json-Marshal：将数据编码成json字符串"><a href="#Json-Marshal：将数据编码成json字符串" class="headerlink" title="Json Marshal：将数据编码成json字符串"></a>Json Marshal：将数据编码成json字符串</h3><p>看一个简单的例子</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> Stu <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token builtin">string</span> <span class="token string">`json:"name"`</span>
+    Age   <span class="token builtin">int</span>
+    HIgh  <span class="token builtin">bool</span>
+    sex   <span class="token builtin">string</span>
+    Class <span class="token operator">*</span>Class <span class="token string">`json:"class"`</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">type</span> Class <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token builtin">string</span>
+    Grade <span class="token builtin">int</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//实例化一个数据结构，用于生成json字符串</span>
+    stu <span class="token operator">:=</span> Stu<span class="token punctuation">&#123;</span>
+        Name<span class="token punctuation">:</span> <span class="token string">"张三"</span><span class="token punctuation">,</span>
+        Age<span class="token punctuation">:</span>  <span class="token number">18</span><span class="token punctuation">,</span>
+        HIgh<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        sex<span class="token punctuation">:</span>  <span class="token string">"男"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">//指针变量</span>
+    cla <span class="token operator">:=</span> <span class="token function">new</span><span class="token punctuation">(</span>Class<span class="token punctuation">)</span>
+    cla<span class="token punctuation">.</span>Name <span class="token operator">=</span> <span class="token string">"1班"</span>
+    cla<span class="token punctuation">.</span>Grade <span class="token operator">=</span> <span class="token number">3</span>
+    stu<span class="token punctuation">.</span>Class<span class="token operator">=</span>cla
+
+    <span class="token comment">//Marshal失败时err!=nil</span>
+    jsonStu<span class="token punctuation">,</span> err <span class="token operator">:=</span> json<span class="token punctuation">.</span><span class="token function">Marshal</span><span class="token punctuation">(</span>stu<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"生成json字符串错误"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">//jsonStu是[]byte类型，转化成string类型便于查看</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token function">string</span><span class="token punctuation">(</span>jsonStu<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果：</p><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span><span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"张三"</span><span class="token punctuation">,</span><span class="token property">"Age"</span><span class="token operator">:</span><span class="token number">18</span><span class="token punctuation">,</span><span class="token property">"HIgh"</span><span class="token operator">:</span><span class="token boolean">true</span><span class="token punctuation">,</span><span class="token property">"class"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span><span class="token property">"Name"</span><span class="token operator">:</span><span class="token string">"1班"</span><span class="token punctuation">,</span><span class="token property">"Grade"</span><span class="token operator">:</span><span class="token number">3</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>从结果中可以看出</p><ul><li>只要是可导出成员（变量首字母大写），都可以转成json。因成员变量sex是不可导出的，故无法转成json。</li><li>如果变量打上了json标签，如Name旁边的 <code>json:&quot;name&quot;</code> ，那么转化成的json key就用该标签“name”，否则取变量名作为key，如“Age”，“HIgh”。</li><li>bool类型也是可以直接转换为json的value值。Channel， complex 以及函数不能被编码json字符串。当然，循环的数据结构也不行，它会导致marshal陷入死循环。</li><li><code>指针变量</code>，编码时自动转换为它所指向的值，如cla变量。<br>（当然，不传指针，Stu struct的成员Class如果换成Class struct类型，效果也是一模一样的。只不过指针更快，且能节省内存空间。）</li><li>最后，强调一句：json编码成字符串后就是<code>纯粹的</code>字符串了。</li></ul><hr><blockquote><p>上面的成员变量都是已知的类型，只能接收指定的类型，比如string类型的Name只能赋值string类型的数据。<br>但有时为了通用性，或使代码简洁，我们希望有一种类型可以接受各种类型的数据，并进行json编码。这就用到了interface{}类型。</p></blockquote><p>前言：</p><p>interface{}类型其实是个空接口，即没有方法的接口。go的每一种类型都实现了该接口。因此，任何其他类型的数据都可以赋值给**interface{}**类型。</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> Stu <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token string">`json:"name"`</span>
+    Age   <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    HIgh  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    sex   <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Class <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token string">`json:"class"`</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">type</span> Class <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token builtin">string</span>
+    Grade <span class="token builtin">int</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//与前面的例子一样</span>
+    <span class="token operator">...</span><span class="token operator">...</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果：</p><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span><span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"张三"</span><span class="token punctuation">,</span><span class="token property">"Age"</span><span class="token operator">:</span><span class="token number">18</span><span class="token punctuation">,</span><span class="token property">"HIgh"</span><span class="token operator">:</span><span class="token boolean">true</span><span class="token punctuation">,</span><span class="token property">"class"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span><span class="token property">"Name"</span><span class="token operator">:</span><span class="token string">"1班"</span><span class="token punctuation">,</span><span class="token property">"Grade"</span><span class="token operator">:</span><span class="token number">3</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><h2 id="从结果中可以看出，无论是string，int，bool，还是指针类型等，都可赋值给interface-类型，且正常编码，效果与前面的例子一样。"><a href="#从结果中可以看出，无论是string，int，bool，还是指针类型等，都可赋值给interface-类型，且正常编码，效果与前面的例子一样。" class="headerlink" title="从结果中可以看出，无论是string，int，bool，还是指针类型等，都可赋值给interface{}类型，且正常编码，效果与前面的例子一样。"></a>从结果中可以看出，无论是string，int，bool，还是指针类型等，都可赋值给interface{}类型，且正常编码，效果与前面的例子一样。</h2><p>补充：<br>在实际项目中，编码成json串的数据结构，往往是切片类型。如下定义了一个[]StuRead类型的切片</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">//正确示范</span>
+
+<span class="token comment">//方式1：只声明，不分配内存</span>
+<span class="token keyword">var</span> stus1 <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">*</span>StuRead
+
+<span class="token comment">//方式2：分配初始值为0的内存</span>
+stus2 <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">*</span>StuRead<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span>
+
+<span class="token comment">//错误示范</span>
+<span class="token comment">//new()只能实例化一个struct对象，而[]StuRead是切片，不是对象</span>
+stus <span class="token operator">:=</span> <span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span>StuRead<span class="token punctuation">)</span>
+
+stu1 <span class="token operator">:=</span> StuRead<span class="token punctuation">&#123;</span>成员赋值<span class="token operator">...</span><span class="token punctuation">&#125;</span>
+stu2 <span class="token operator">:=</span> StuRead<span class="token punctuation">&#123;</span>成员赋值<span class="token operator">...</span><span class="token punctuation">&#125;</span>
+
+<span class="token comment">//由方式1和2创建的切片，都能成功追加数据</span>
+<span class="token comment">//方式2最好分配0长度，append时会自动增长。反之指定初始长度，长度不够时不会自动增长，导致数据丢失</span>
+stus1 <span class="token operator">:=</span> <span class="token function">appen</span><span class="token punctuation">(</span>stus1<span class="token punctuation">,</span>stu1<span class="token punctuation">,</span>stu2<span class="token punctuation">)</span>
+stus2 <span class="token operator">:=</span> <span class="token function">appen</span><span class="token punctuation">(</span>stus2<span class="token punctuation">,</span>stu1<span class="token punctuation">,</span>stu2<span class="token punctuation">)</span>
+
+<span class="token comment">//成功编码</span>
+json1<span class="token punctuation">,</span><span class="token boolean">_</span> <span class="token operator">:=</span> json<span class="token punctuation">.</span><span class="token function">Marshal</span><span class="token punctuation">(</span>stus1<span class="token punctuation">)</span>
+json2<span class="token punctuation">,</span><span class="token boolean">_</span> <span class="token operator">:=</span> json<span class="token punctuation">.</span><span class="token function">Marshal</span><span class="token punctuation">(</span>stus2<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><h2 id="解码时定义对应的切片接受即可"><a href="#解码时定义对应的切片接受即可" class="headerlink" title="解码时定义对应的切片接受即可"></a>解码时定义对应的切片接受即可</h2><h3 id="Json-Unmarshal：将json字符串解码到相应的数据结构"><a href="#Json-Unmarshal：将json字符串解码到相应的数据结构" class="headerlink" title="Json Unmarshal：将json字符串解码到相应的数据结构"></a>Json Unmarshal：将json字符串解码到相应的数据结构</h3><p>我们将上面的例子进行解码</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token string">`json:"name"`</span>
+    Age   <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    HIgh  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    sex   <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Class <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token string">`json:"class"`</span>
+    Test  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">type</span> Class <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token builtin">string</span>
+    Grade <span class="token builtin">int</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//json字符中的"引号，需用\进行转义，否则编译出错</span>
+    <span class="token comment">//json字符串沿用上面的结果，但对key进行了大小的修改，并添加了sex数据</span>
+    data<span class="token operator">:=</span><span class="token string">"&#123;\"name\":\"张三\",\"Age\":18,\"high\":true,\"sex\":\"男\",\"CLASS\":&#123;\"naME\":\"1班\",\"GradE\":3&#125;&#125;"</span>
+    str<span class="token operator">:=</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+
+    <span class="token comment">//1.Unmarshal的第一个参数是json字符串，第二个参数是接受json解析的数据结构。</span>
+    <span class="token comment">//第二个参数必须是指针，否则无法接收解析的数据，如stu仍为空对象StuRead&#123;&#125;</span>
+    <span class="token comment">//2.可以直接stu:=new(StuRead),此时的stu自身就是指针</span>
+    stu<span class="token operator">:=</span>StuRead<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    err<span class="token operator">:=</span>json<span class="token punctuation">.</span><span class="token function">Unmarshal</span><span class="token punctuation">(</span>str<span class="token punctuation">,</span><span class="token operator">&amp;</span>stu<span class="token punctuation">)</span>
+
+    <span class="token comment">//解析失败会报错，如json字符串格式不对，缺"号，缺&#125;等。</span>
+    <span class="token keyword">if</span> err<span class="token operator">!=</span><span class="token boolean">nil</span><span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>stu<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果：</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token punctuation">&#123;</span>张三 <span class="token number">18</span> <span class="token boolean">true</span> <span class="token operator">&lt;</span><span class="token boolean">nil</span><span class="token operator">></span> <span class="token keyword">map</span><span class="token punctuation">[</span>naME<span class="token punctuation">:</span><span class="token number">1</span>班 GradE<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">&lt;</span><span class="token boolean">nil</span><span class="token operator">></span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><ul><li>json字符串解析时，需要一个“接收体”接受解析后的数据，且Unmarshal时<code>接收体必须传递指针</code>。否则解析虽不报错，但数据无法赋值到接受体中。如这里用的是StuRead{}接收。</li><li>解析时，接收体可自行定义。json串中的key自动在接收体中寻找匹配的项进行赋值。匹配规则是：<ul><li>先查找与key一样的json标签，找到则赋值给该标签对应的变量(如Name)。</li><li>没有json标签的，就从上往下依次查找变量名与key一样的变量，如Age。或者变量名忽略大小写后与key一样的变量。如HIgh，Class。第一个匹配的就赋值，后面就算有匹配的也忽略。<br>(前提是该变量必需是可导出的，即首字母大写)。</li></ul></li><li><code>不可导出的变量无法被解析</code>（如sex变量，虽然json串中有key为sex的k-v，解析后其值仍为nil,即空值）</li><li>当接收体中存在json串中<code>匹配不了的项</code>时，解析会<code>自动忽略</code>该项，该项仍保留原值。如变量Test，保留空值nil。</li><li>你一定会发现，变量Class貌似没有解析为我们期待样子。因为此时的Class是个interface{}类型的变量，而json串中key为CLASS的value是个复合结构，不是可以直接解析的简单类型数据（如“张三”，18，true等）。所以解析时，由于没有指定变量Class的具体类型，json自动将value为复合结构的数据解析为map[string]interface{}类型的项。也就是说，此时的struct Class对象与StuRead中的Class变量没有半毛钱关系，故与这次的json解析没有半毛钱关系。</li></ul><p>让我们看一下这几个interface{}变量解析后的类型</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//与前边json解析的代码一致</span>
+    <span class="token operator">...</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>stu<span class="token punctuation">)</span> <span class="token comment">//打印json解析前变量类型</span>
+    err<span class="token operator">:=</span>json<span class="token punctuation">.</span><span class="token function">Unmarshal</span><span class="token punctuation">(</span>str<span class="token punctuation">,</span><span class="token operator">&amp;</span>stu<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"--------------json 解析后-----------"</span><span class="token punctuation">)</span>
+    <span class="token operator">...</span> 
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>stu<span class="token punctuation">)</span> <span class="token comment">//打印json解析后变量类型    </span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">//利用反射，打印变量类型</span>
+<span class="token keyword">func</span> <span class="token function">printType</span><span class="token punctuation">(</span>stu <span class="token operator">*</span>StuRead<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    nameType<span class="token operator">:=</span>reflect<span class="token punctuation">.</span><span class="token function">TypeOf</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
+    ageType<span class="token operator">:=</span>reflect<span class="token punctuation">.</span><span class="token function">TypeOf</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>Age<span class="token punctuation">)</span>
+    highType<span class="token operator">:=</span>reflect<span class="token punctuation">.</span><span class="token function">TypeOf</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>HIgh<span class="token punctuation">)</span>
+    sexType<span class="token operator">:=</span>reflect<span class="token punctuation">.</span><span class="token function">TypeOf</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>sex<span class="token punctuation">)</span>
+    classType<span class="token operator">:=</span>reflect<span class="token punctuation">.</span><span class="token function">TypeOf</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>Class<span class="token punctuation">)</span>
+    testType<span class="token operator">:=</span>reflect<span class="token punctuation">.</span><span class="token function">TypeOf</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>Test<span class="token punctuation">)</span>
+
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"nameType:"</span><span class="token punctuation">,</span>nameType<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"ageType:"</span><span class="token punctuation">,</span>ageType<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"highType:"</span><span class="token punctuation">,</span>highType<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"sexType:"</span><span class="token punctuation">,</span>sexType<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"classType:"</span><span class="token punctuation">,</span>classType<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"testType:"</span><span class="token punctuation">,</span>testType<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果：</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">nameType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+ageType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+highType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+sexType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+classType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+testType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+--------------json 解析后-----------
+nameType: string
+ageType: float64
+highType: bool
+sexType: <span class="token operator">&lt;</span>nil<span class="token operator">></span>
+classType: map<span class="token punctuation">[</span>string<span class="token punctuation">]</span>interface <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+testType: <span class="token operator">&lt;</span>nil<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>从结果中可见</p><ul><li>interface{}类型变量在json解析前，打印出的类型都为nil，就是没有具体类型，这是空接口（interface{}类型）的特点。</li><li>json解析后，json串中value，只要是”简单数据”，都会按照默认的类型赋值，如”张三”被赋值成string类型到Name变量中，数字18对应float64，true对应bool类型。<br><blockquote><p>“简单数据”：是指不能再进行二次json解析的数据，如”name”:”张三”只能进行一次json解析。<br><br>“复合数据”：类似”CLASS\”:{\”naME\”:\”1班\”,\”GradE\”:3}这样的数据，是可进行二次甚至多次json解析的，因为它的value也是个可被解析的独立json。即第一次解析key为CLASS的value，第二次解析value中的key为naME和GradE的value</p></blockquote></li><li>对于”复合数据”，如果接收体中配的项被声明为interface{}类型，go都会默认解析成map[string]interface{}类型。如果我们想直接解析到struct Class对象中，可以将接受体对应的项定义为该struct类型。如下所示：</li></ul><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+<span class="token operator">...</span>
+<span class="token comment">//普通struct类型</span>
+Class Class <span class="token string">`json:"class"`</span>
+<span class="token comment">//指针类型</span>
+Class <span class="token operator">*</span>Class <span class="token string">`json:"class"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>stu打印结果</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Class类型：<span class="token punctuation">&#123;</span>张三 <span class="token number">18</span> <span class="token boolean">true</span> <span class="token operator">&lt;</span>nil<span class="token operator">></span> <span class="token punctuation">&#123;</span><span class="token number">1</span>班 <span class="token number">3</span><span class="token punctuation">&#125;</span> <span class="token operator">&lt;</span>nil<span class="token operator">></span><span class="token punctuation">&#125;</span>
+*Class类型：<span class="token punctuation">&#123;</span>张三 <span class="token number">18</span> <span class="token boolean">true</span> <span class="token operator">&lt;</span>nil<span class="token operator">></span> 0xc42008a0c0 <span class="token operator">&lt;</span>nil<span class="token operator">></span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre><blockquote><p>可以看出，传递Class类型的指针时，stu中的Class变量存的是指针，我们可通过该指针直接访问所属的数据，如stu.Class.Name/stu.Class.Grade</p></blockquote><p>Class变量解析后类型</p><pre class="line-numbers language-go" data-language="go"><code class="language-go">classType<span class="token punctuation">:</span> main<span class="token punctuation">.</span>Class
+classType<span class="token punctuation">:</span> <span class="token operator">*</span>main<span class="token punctuation">.</span>Class<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre><p>解析时，如果接受体中同时存在2个匹配的项，会发生什么呢？<br>测试1</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    NAme <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Name  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    NAMe <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>    <span class="token string">`json:"name"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果1:</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">//当存在匹配的json标签时，其对应的项被赋值。
+//切记：匹配的标签可以没有，但有时最好只有一个哦
+<span class="token punctuation">&#123;</span><span class="token operator">&lt;</span>nil<span class="token operator">></span> <span class="token operator">&lt;</span>nil<span class="token operator">></span> 张三<span class="token punctuation">&#125;</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre><p>测试2</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    NAme <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Name  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    NAMe <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>    <span class="token string">`json:"name"`</span>
+    NamE <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>    <span class="token string">`json:"name"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果2</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">//当匹配的json标签有多个时，标签对应的项都不会被赋值。
+//忽略标签项，从上往下寻找第一个没有标签且匹配的项赋值
+<span class="token punctuation">&#123;</span>张三 <span class="token operator">&lt;</span>nil<span class="token operator">></span> <span class="token operator">&lt;</span>nil<span class="token operator">></span> <span class="token operator">&lt;</span>nil<span class="token operator">></span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre><p>测试3</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    NAme <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Name  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre><p>结果3</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">//没有json标签时，从上往下，第一个匹配的项会被赋值哦
+<span class="token punctuation">&#123;</span>张三 <span class="token operator">&lt;</span>nil<span class="token operator">></span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre><p>测试4</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    NAMe <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>    <span class="token string">`json:"name"`</span>
+    NamE <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>    <span class="token string">`json:"name"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre><p>结果4</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">//当相同的json标签有多个，且没有不带标签的匹配项时，报错了哦
+<span class="token comment"># command-line-arguments</span>
+src/test/b.go:48: stu.Name undefined <span class="token punctuation">(</span>type *StuRead has no field or method Name, but does have NAMe<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre><p>可见，与前边说过的匹配规则是一致的。</p><hr><p>如果不想指定Class变量为具体的类型，仍想保留interface{}类型，但又希望该变量可以解析到struct Class对象中，这时候该怎么办呢？</p><blockquote><p>这种需求是很可能存在的，例如笔者我就碰到了</p></blockquote><p>办法还是有的，我们可以将该变量定义为json.RawMessage类型</p><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> StuRead <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Age   <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    HIgh  <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    Class json<span class="token punctuation">.</span>RawMessage <span class="token string">`json:"class"`</span> <span class="token comment">//注意这里</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">type</span> Class <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Name  <span class="token builtin">string</span>
+    Grade <span class="token builtin">int</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    data<span class="token operator">:=</span><span class="token string">"&#123;\"name\":\"张三\",\"Age\":18,\"high\":true,\"sex\":\"男\",\"CLASS\":&#123;\"naME\":\"1班\",\"GradE\":3&#125;&#125;"</span>
+    str<span class="token operator">:=</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+    stu<span class="token operator">:=</span>StuRead<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    <span class="token boolean">_</span><span class="token operator">:=</span>json<span class="token punctuation">.</span><span class="token function">Unmarshal</span><span class="token punctuation">(</span>str<span class="token punctuation">,</span><span class="token operator">&amp;</span>stu<span class="token punctuation">)</span>
+
+    <span class="token comment">//注意这里：二次解析！</span>
+    cla<span class="token operator">:=</span><span class="token function">new</span><span class="token punctuation">(</span>Class<span class="token punctuation">)</span>
+    json<span class="token punctuation">.</span><span class="token function">Unmarshal</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>Class<span class="token punctuation">,</span>cla<span class="token punctuation">)</span>
+
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"stu:"</span><span class="token punctuation">,</span>stu<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"string(stu.Class):"</span><span class="token punctuation">,</span><span class="token function">string</span><span class="token punctuation">(</span>stu<span class="token punctuation">.</span>Class<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"class:"</span><span class="token punctuation">,</span>cla<span class="token punctuation">)</span>
+    <span class="token function">printType</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>stu<span class="token punctuation">)</span> <span class="token comment">//函数实现前面例子有</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>结果</p><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">stu: <span class="token punctuation">&#123;</span>张三 <span class="token number">18</span> <span class="token boolean">true</span> <span class="token punctuation">[</span><span class="token number">123</span> <span class="token number">34</span> <span class="token number">110</span> <span class="token number">97</span> <span class="token number">77</span> <span class="token number">69</span> <span class="token number">34</span> <span class="token number">58</span> <span class="token number">34</span> <span class="token number">49</span> <span class="token number">231</span> <span class="token number">143</span> <span class="token number">173</span> <span class="token number">34</span> <span class="token number">44</span> <span class="token number">34</span> <span class="token number">71</span> <span class="token number">114</span> <span class="token number">97</span> <span class="token number">100</span> <span class="token number">69</span> <span class="token number">34</span> <span class="token number">58</span> <span class="token number">51</span> <span class="token number">125</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span>
+string<span class="token punctuation">(</span>stu.Class<span class="token punctuation">)</span>: <span class="token punctuation">&#123;</span><span class="token string">"naME"</span><span class="token builtin class-name">:</span><span class="token string">"1班"</span>,<span class="token string">"GradE"</span>:3<span class="token punctuation">&#125;</span>
+class: <span class="token operator">&amp;</span><span class="token punctuation">&#123;</span><span class="token number">1</span>班 <span class="token number">3</span><span class="token punctuation">&#125;</span>
+nameType: string
+ageType: float64
+highType: bool
+classType: json.RawMessage<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><p>从结果中可见</p><ul><li>接收体中，<code>被声明为json.RawMessage类型的变量在json解析时，变量值仍保留json的原值</code>，即未被自动解析为<code>map[string]interface&#123;&#125;</code>类型。如变量Class解析后的值为：<code>&#123;“naME”:”1班”,”GradE”:3&#125;</code></li><li>从打印的类型也可以看出，在第一次json解析时，变量Class的类型是<code>json.RawMessage</code>。此时，我们可以对该变量进行二次json解析，因为其值仍是个独立且可解析的完整json串。我们只需再定义一个新的接受体即可，如<code>json.Unmarshal(stu.Class,cla)</code></li></ul></div><div class="reward-container"><div>予人鲜花者手留余香，持善者必博称婵娟留恋.</div><button onclick='var qr=document.getElementById("qr");qr.style.display="none"===qr.style.display?"block":"none"'>打赏</button><div id="qr" style="display:none"><div style="display:inline-block"><img src="/images/wechatpay.png" alt="Nomandia 微信支付"><p>微信支付</p></div><div style="display:inline-block"><img src="/images/alipay.png" alt="Nomandia 支付宝"><p>支付宝</p></div></div></div><footer class="post-footer"><div class="post-tags"><a href="/tags/go/" rel="tag"><i class="fa fa-tag"></i> Go</a></div></footer></article></div><div class="comments" id="valine-comments"></div><script>window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }</script></div><div class="toggle sidebar-toggle"><span class="toggle-line toggle-line-first"></span> <span class="toggle-line toggle-line-middle"></span> <span class="toggle-line toggle-line-last"></span></div><aside class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc">文章目录</li><li class="sidebar-nav-overview">站点概览</li></ul><div class="post-toc-wrap sidebar-panel"><div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Json-Marshal%EF%BC%9A%E5%B0%86%E6%95%B0%E6%8D%AE%E7%BC%96%E7%A0%81%E6%88%90json%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number">2.1.</span> <span class="nav-text">Json Marshal：将数据编码成json字符串</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E7%BB%93%E6%9E%9C%E4%B8%AD%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%87%BA%EF%BC%8C%E6%97%A0%E8%AE%BA%E6%98%AFstring%EF%BC%8Cint%EF%BC%8Cbool%EF%BC%8C%E8%BF%98%E6%98%AF%E6%8C%87%E9%92%88%E7%B1%BB%E5%9E%8B%E7%AD%89%EF%BC%8C%E9%83%BD%E5%8F%AF%E8%B5%8B%E5%80%BC%E7%BB%99interface-%E7%B1%BB%E5%9E%8B%EF%BC%8C%E4%B8%94%E6%AD%A3%E5%B8%B8%E7%BC%96%E7%A0%81%EF%BC%8C%E6%95%88%E6%9E%9C%E4%B8%8E%E5%89%8D%E9%9D%A2%E7%9A%84%E4%BE%8B%E5%AD%90%E4%B8%80%E6%A0%B7%E3%80%82"><span class="nav-number">3.</span> <span class="nav-text">从结果中可以看出，无论是string，int，bool，还是指针类型等，都可赋值给interface{}类型，且正常编码，效果与前面的例子一样。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E7%A0%81%E6%97%B6%E5%AE%9A%E4%B9%89%E5%AF%B9%E5%BA%94%E7%9A%84%E5%88%87%E7%89%87%E6%8E%A5%E5%8F%97%E5%8D%B3%E5%8F%AF"><span class="nav-number">4.</span> <span class="nav-text">解码时定义对应的切片接受即可</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Json-Unmarshal%EF%BC%9A%E5%B0%86json%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%A7%A3%E7%A0%81%E5%88%B0%E7%9B%B8%E5%BA%94%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">4.1.</span> <span class="nav-text">Json Unmarshal：将json字符串解码到相应的数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">4.2.</span> <span class="nav-text">总结：</span></a></li></ol></li></ol></div></div><div class="site-overview-wrap sidebar-panel"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"><img class="site-author-image" itemprop="image" alt="Nomandia" src="/images/avatar.jpg"><p class="site-author-name" itemprop="name">Nomandia</p><div class="site-description" itemprop="description">触碰未来科技、凝汇生活点滴</div></div><div class="site-state-wrap motion-element"><nav class="site-state"><div class="site-state-item site-state-posts"><a href="/archives/"><span class="site-state-item-count">2</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"><a href="/categories/"><span class="site-state-item-count">1</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"><span class="site-state-item-count">3</span> <span class="site-state-item-name">标签</span></div></nav></div><div class="feed-link motion-element" style="opacity:1;display:block;transform:translateX(0)"><a href="/atom.xml" rel="alternate" target="_blank"><i class="fa fa-rss"></i> RSS</a></div><div class="links-of-author motion-element"><span class="links-of-author-item"><a href="https://github.com/nomandia" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nomandia" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a> </span><span class="links-of-author-item"><a href="mailto:nomandia@163.com" title="E-Mail → mailto:nomandia@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a></span></div><div class="links-of-blogroll motion-element"><div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i> FLinks</div><ul class="links-of-blogroll-list"><li class="links-of-blogroll-item"><a target="_blank" rel="noopener" href="//huoxingxiaoyi.com" title="&#x2F;&#x2F;huoxingxiaoyi.com">火星小易</a></li><li class="links-of-blogroll-item"><a target="_blank" rel="noopener" href="//yichuangzuo.com" title="&#x2F;&#x2F;yichuangzuo.com">易创作</a></li></ul></div></div></div></aside><div id="sidebar-dimmer"></div></div></main><footer class="footer"><div class="footer-inner"><div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">IPC is me </a><img src="/images/beian.png" style="display:inline-block"><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=gongan_id" rel="noopener" target="_blank">gongan_num</a></div><div class="copyright">&copy; <span itemprop="copyrightYear">2020</span> <span class="with-love"><i class="fa fa-heart"></i> </span><span class="author" itemprop="copyrightHolder">nomandia.cn</span></div><div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动</div><script src="/js/prism/prism.js" async></script><div class="busuanzi-count"><script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span class="post-meta-item" id="busuanzi_container_site_uv" style="display:none"><span class="post-meta-item-icon"><i class="fa fa-user"></i> </span><span class="site-uv" title="总访客量"><span id="busuanzi_value_site_uv"></span> </span></span><span class="post-meta-divider">|</span> <span class="post-meta-item" id="busuanzi_container_site_pv" style="display:none"><span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="site-pv" title="总访问量"><span id="busuanzi_value_site_pv"></span></span></span></div></div></footer></div><script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script><script src="//cdn.jsdelivr.net/gh/theme-next/theme-next-pjax@0/pjax.min.js"></script><script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script><script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/lozad.js/1.14.0/lozad.min.js"></script><script src="/lib/velocity/velocity.min.js"></script><script src="/lib/velocity/velocity.ui.min.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script>var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});</script><script data-pjax>!function(){var e,t,o,n,r,a=document.getElementsByTagName("link");if(0<a.length)for(i=0;i<a.length;i++)"canonical"==a[i].rel.toLowerCase()&&a[i].href&&(e=a[i].href);t=e?e.split(":")[0]:window.location.protocol.split(":")[0],e=e||window.location.href,window,n=e,r=document.referrer,/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi.test(n)||(o="https"===String(t).toLowerCase()?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif",r?(o+="?r="+encodeURIComponent(document.referrer),n&&(o+="&l="+n)):n&&(o+="?l="+n),(new Image).src=o)}()</script><script data-pjax>if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}</script><div id="pjax"><script>NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'hVTCXI5yMOTmKmyqJId1ibp6-gzGzoHsz',
+      appKey     : 'K5PWot7oeTFhHhLdapw9qjyK',
+      placeholder: "人过留声，雁过留名",
+      avatar     : 'monsterid',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-CN' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});</script></div></body></html>

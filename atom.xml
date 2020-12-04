@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Nomandia.cn</title>
+  <icon>http://nomandia.cn/icon.png</icon>
+  <subtitle>FlY WitH YoU</subtitle>
+  <link href="http://nomandia.cn/atom.xml" rel="self"/>
+  
+  <link href="http://nomandia.cn/"/>
+  <updated>2020-12-03T10:40:41.583Z</updated>
+  <id>http://nomandia.cn/</id>
+  
+  <author>
+    <name>Nomandia</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>touch my self</title>
+    <link href="http://nomandia.cn/2020/12/03/touch-my-self/"/>
+    <id>http://nomandia.cn/2020/12/03/touch-my-self/</id>
+    <published>2020-12-03T09:39:07.000Z</published>
+    <updated>2020-12-03T10:40:41.583Z</updated>
+    
+    
+    
+    
+    <category term="前端" scheme="http://nomandia.cn/categories/frontend/"/>
+    
+    
+    <category term="test" scheme="http://nomandia.cn/tags/test/"/>
+    
+    <category term="fff" scheme="http://nomandia.cn/tags/fff/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Go的json解析：Marshal与Unmarshal</title>
+    <link href="http://nomandia.cn/2020/12/03/go-marshal-and-unmarshal/"/>
+    <id>http://nomandia.cn/2020/12/03/go-marshal-and-unmarshal/</id>
+    <published>2020-12-03T03:58:01.379Z</published>
+    <updated>2020-12-03T11:09:41.666Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;p&gt;Json(Javascript Object Nanotation)是一种数据交换格式，常用于前后端数据传输。任意一端将数据转换成json 字符串，另一端再将该字符串解析成相应的数据结构，如string类型，strcut对象等。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;go语言本身为我们提供了json的工具包”encoding/json”。&lt;br&gt;更多的使用方式，可以参考：&lt;a href=&quot;https://studygolang.com/articles/6742&quot;&gt;https://studygolang.com/articles/6742&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</summary>
+    
+    
+    
+    <category term="前端" scheme="http://nomandia.cn/categories/frontend/"/>
+    
+    
+    <category term="Go" scheme="http://nomandia.cn/tags/go/"/>
+    
+  </entry>
+  
+</feed>
